@@ -80,7 +80,7 @@ async function updateInterestAmounts() {
 
       }
 
-      const interestUpdate = investedAmount * 0.012;
+      const interestUpdate = investedAmount * 0.0012;
       const newInterestAmount = currentInterestAmount + interestUpdate;
       const newReferralAmount = referralAmount + totalReferralAddition;
       const newWithdrawableAmount = currentWithdrawableAmount + interestUpdate + totalReferralAddition;
