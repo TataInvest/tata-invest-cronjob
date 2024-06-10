@@ -38,6 +38,11 @@ admin.initializeApp({
 
 const firestore = admin.firestore();
 
+function getRandomInterestRate() {
+  const interestRates = [0.012, 0.024, 0.036, 0.048, 0.060, 0.072];
+  return interestRates[Math.floor(Math.random() * interestRates.length)];
+}
+
 // Daily update task (using async/await)
 async function updateInterestAmounts() {
   const batch = firestore.batch();
@@ -80,7 +85,8 @@ async function updateInterestAmounts() {
 
       }
 
-      const interestUpdate = investedAmount * 0.0012;
+      const interestRate = getRandomInterestRate(); // Get a random interest rate from the array
+      const interestUpdate = investedAmount * interestRate;
       const newInterestAmount = currentInterestAmount + interestUpdate;
       const newReferralAmount = referralAmount + totalReferralAddition;
       const newWithdrawableAmount = currentWithdrawableAmount + interestUpdate + totalReferralAddition;
