@@ -49,11 +49,13 @@ async function updateInterestAmounts() {
   const usersRef = firestore.collection('users');
   const usersSnapshot = await usersRef.get();
   try {
-
-
     for (const doc of usersSnapshot.docs) {
       const userData = doc.data();
       const investedAmount = userData.investedAmount || 0;
+      console.log(investedAmount);
+      if (!investedAmount) {
+        console.log(userData.investedAmount);
+      }
       const currentInterestAmount = userData.interestAmount || 0;
       const currentWithdrawableAmount = userData.withdrawableAmount || 0;
       const referralAmount = userData.referralAmount || 0;
@@ -62,27 +64,31 @@ async function updateInterestAmounts() {
       const referralUsersArray = userData.referralUsers || [];
       for (const referralUser of referralUsersArray) {
         const referralUserDoc = await firestore.collection('users').doc(referralUser).get();
+        if (!referralUserDoc.exists) continue; // Skip if document does not exist
         const referralUserDocData = referralUserDoc.data();
+        if (!referralUserDocData) continue; // Skip if document data is undefined
         const referralUserInvestedAmount = referralUserDocData.investedAmount || 0;
         totalReferralAddition += referralUserInvestedAmount * 0.003;
 
         const childOfChildReferralUsersArray = referralUserDocData.referralUsers || [];
         for (const childOfChildReferralUser of childOfChildReferralUsersArray) {
           const childOfChildreferralUserDoc = await firestore.collection('users').doc(childOfChildReferralUser).get();
+          if (!childOfChildreferralUserDoc.exists) continue; // Skip if document does not exist
           const childOfChildreferralUserDocData = childOfChildreferralUserDoc.data();
+          if (!childOfChildreferralUserDocData) continue; // Skip if document data is undefined
           const childOfChildreferralUserInvestedAmount = childOfChildreferralUserDocData.investedAmount || 0;
           totalReferralAddition += childOfChildreferralUserInvestedAmount * 0.002;
 
           const childOfChildOfChildReferralUsersArray = childOfChildreferralUserDocData.referralUsers || [];
           for (const childOfChildOfChildReferralUser of childOfChildOfChildReferralUsersArray) {
             const childOfChildOfChildreferralUserDoc = await firestore.collection('users').doc(childOfChildOfChildReferralUser).get();
+            if (!childOfChildOfChildreferralUserDoc.exists) continue; // Skip if document does not exist
             const childOfChildOfChildreferralUserDocData = childOfChildOfChildreferralUserDoc.data();
+            if (!childOfChildOfChildreferralUserDocData) continue; // Skip if document data is undefined
             const childOfChildOfChildreferralUserInvestedAmount = childOfChildOfChildreferralUserDocData.investedAmount || 0;
             totalReferralAddition += childOfChildOfChildreferralUserInvestedAmount * 0.001;
-
           }
         }
-
       }
 
       const interestRate = getRandomInterestRate(); // Get a random interest rate from the array
@@ -91,9 +97,9 @@ async function updateInterestAmounts() {
       const newReferralAmount = referralAmount + totalReferralAddition;
       const newWithdrawableAmount = currentWithdrawableAmount + interestUpdate + totalReferralAddition;
 
-      batch.set(doc.ref, {
-        interestAmount: newInterestAmount,
-        withdrawableAmount: newWithdrawableAmount,
+       batch.set(doc.ref, {
+         interestAmount: newInterestAmount,
+         withdrawableAmount: newWithdrawableAmount,
         referralAmount: newReferralAmount,
       }, { merge: true });
     }
@@ -104,6 +110,7 @@ async function updateInterestAmounts() {
     console.error('Error updating interest amounts:', error);
   }
 }
+
 
 async function updateInvestedAmount() {
   try {
